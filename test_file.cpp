@@ -1,5 +1,6 @@
 #include<bits/stdc++.h>
 using namespace std;
+#define MAX 100005
 
 int main()
 {
@@ -10,5 +11,14 @@ int main()
   ios::sync_with_stdio(0);
   cin.tie(NULL);
   cout.tie(NULL);
-  cout << "hello world \n";
+  vector<vector<int> > vec( 9 , vector<int> (9, MAX));
+  for(auto i : vec)
+  {
+    for(auto j: i)
+    {
+      cout << j << " ";
+    }
+    cout << "\n";
+  }
+
 }
