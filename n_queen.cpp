@@ -1,55 +1,67 @@
 #include<bits/stdc++.h>
 using namespace std;
 #define MAX 100005
+int vertices;
+stack<int> st;
+//implementation of n-queen problem with graphs backtracking with graphs
+//this problem is created using directed graph where all vertices must be
+//connected to next valid vertex, so we have to build the graph that way
+//we have to do above implementation upto vertex-1 rows as last row
+//does not have any valid next vertex
+//so this is a top down graph connection approach
+//another thing to be noted that we have to make the downwards and aligned path
+//as invalid which is donw using make_invalid function
 
-bool add_edge(map<int,vector<int>> &m, int a, int b)
+
+void add_edge(map<int,vector<int>> &m, int a, int b)
 {
 	for(auto i: m[a])
 	{
 		if(i == b)
 		{
-			return false;
+			return ;
 		}
 	}
 	m[a].emplace_back(b);
-	return true;
+	//cout << a <<  " -> " << b << "\n";
 }
 
-void build_graph(map<int,vector<int>>& m, int vertices)
+void build_graph(map<int,vector<int>>& m) //giving valid vertices to vertex
 {
 	int i=0;
 	int rem;
 	int j;
 	int temp;
-	while(i<(vertices*(vertices-1))) //making relations for edges upto 0->11
+	while(i<(vertices*(vertices-1))) //making relations for edges upto vertex-1
 	{
-		rem = i/vertices;
+		rem = i%vertices;
 		for(j=0;j<vertices;j++)
 		{
 			temp = ((i+j)%vertices) + vertices*(1 + (i/vertices));
 			if(temp%vertices != rem && temp%vertices != rem+1 && temp%vertices != rem-1)
 			{
-				add_edge(m,i,temp);
-			} 
+				add_edge(m,i,temp); //add edge if it is not strictly downward or aligned
+			}
 		}
+		i++;
 	}
 }
 
-void make_invalid(vector<vector<int>>& vec, int vertices, int ver)
+void make_invalid(vector<vector<int>>& vec,int ver)
 {
-	int temp_i = ver/2;
-	int temp_j = ver%2;
+	int temp_i = ver/vertices; //get x coordinates
+	int temp_j = ver%vertices; //get y coordinates
 
-	//downward
+	//making downward invalid
 	int i = temp_i;
 	int j = temp_j;
-	while(i+1 <vertices)
+	while(i<vertices)
 	{
 		vec[i][j] = 0;
 		i = i+1;
 	}
 
-	//vertical left
+	//making aligned vertical left invalid
 	i = temp_i;
 	while(j-1>=0 && i+1<vertices)
 	{
@@ -58,7 +70,7 @@ void make_invalid(vector<vector<int>>& vec, int vertices, int ver)
 		j = j-1;
 	}
 
-	//vertical right
+	//making aligned vertical right invalid
 	i = temp_i;
 	j= temp_j;
 	while(j+1<vertices && i+1<vertices)
@@ -69,38 +81,43 @@ void make_invalid(vector<vector<int>>& vec, int vertices, int ver)
 	}
 }
 
-bool n_queen_util(map<int,vector<int>>& m, vector<vector<int>> vec, int vertices, int i)
-{
+bool n_queen_util(map<int,vector<int>>& m, vector<vector<int>> vec, int i)
+{//vector is not passed by reference because if backtracking happens the value
+//must get destroyed
 	if(i/vertices == vertices-1)
 	{
 		return true;
 	}
 
-	make_invalid(vec,vertices,i);
+	make_invalid(vec,i);
 
 	for(auto j: m[i])
 	{
+		st.push(j);
 		if(vec[j/vertices][j%vertices] == -1)
 		{
-			if(n_queen_util(m,vec,vertices,j))
+			if(n_queen_util(m,vec,j))
 			{
 				return true;
 			}
 		}
-	}
+		st.pop();
+	} //if returned false than loop travesrse other connected nodes;
 
-	return false;
+	return false; //backtracking to previous state by returning false
 }
 
-bool n_queen(map<int,vector<int>>& m, vector<vector<int>>&vec, int vertices)
+bool n_queen(map<int,vector<int>>& m, vector<vector<int>>&vec)
 {
 
 	for(int i=0;i<vertices;i++)
 	{
-		if(n_queen_util(m,vec,vertices, i))
+		st.push(i);
+		if(n_queen_util(m,vec, i))
 		{
 			return true;
 		}
+		st.pop();
 	}
 	return false;
 }
@@ -117,14 +134,20 @@ int main()
     cin.tie(NULL);
     cout.tie(NULL);
     */
-    int vertices;
     //implementation of undirected graph
     map<int,vector<int>> m; //vector creation using map & vector int
     cout << "enter the input m of mxm square: ";
     cin >> vertices;
-    vector<vector<int>> vec( vertices , vector<int> (vertices, -1)); 
-    build_graph(m,vertices);
-    n_queen(m,vec,vertices);
-    cout << "Now traversing the graph using dfs: \n";
+    vector<vector<int>> vec( vertices , vector<int> (vertices, -1));
+    build_graph(m); //adding edges
+    n_queen(m,vec); //N_queen function
+    cout << "The valid places are: \n";
+		int n;
+		while(!st.empty())
+		{
+			n = st.top();
+			cout << "(" << n/vertices << "," << n%vertices << ")" << "\n";
+			st.pop();
+		}
 
 }
